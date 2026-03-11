@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEK 8.6 Mass Lab</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background-color: #1a1a1a; color: #00ff00; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background-color: #262626; padding: 20px; border: 2px solid #00ff00; border-radius: 10px; box-shadow: 0 0 15px #00ff00; width: 350px; }
+        h1 { font-size: 1.2rem; text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 10px; }
+        .input-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-size: 0.8rem; }
+        input { width: 90%; background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 5px; }
+        button { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #00cc00; }
+        #result { margin-top: 20px; padding: 10px; border: 1px dashed #00ff00; font-size: 0.9rem; min-height: 50px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔬 TEK 8.6 LAB TERMINAL</h1>
+    
+    <div class="input-group">
+        <label>Mass of Reactant 1 (grams):</label>
+        <input type="number" id="r1" placeholder="e.g. 10.5">
+    </div>
+
+    <div class="input-group">
+        <label>Mass of Reactant 2 (grams):</label>
+        <input type="number" id="r2" placeholder="e.g. 5.0">
+    </div>
+
+    <div class="input-group">
+        <label>Measured Product Mass (grams):</label>
+        <input type="number" id="pm" placeholder="Leave empty for Closed System">
+    </div>
+
+    <button onclick="calculateMass()">ANALYZE REACTION</button>
+
+    <div id="result">Waiting for data...</div>
+</div>
+
+<script>
+    function calculateMass() {
+        let r1 = parseFloat(document.getElementById('r1').value) || 0;
+        let r2 = parseFloat(document.getElementById('r2').value) || 0;
+        let pm = document.getElementById('pm').value;
+        let resultDiv = document.getElementById('result');
+
+        let totalReactant = r1 + r2;
+
+        if (pm === "") {
+            // Closed System Case
+            resultDiv.innerHTML = `<strong>CLOSED SYSTEM:</strong><br>Total mass must be <strong>${totalReactant}g</strong>. No atoms were created or destroyed!`;
+        } else {
+            // Open System Case
+            let productMass = parseFloat(pm);
+            if (productMass < totalReactant) {
+                let diff = (totalReactant - productMass).toFixed(2);
+                resultDiv.innerHTML = `<strong>OPEN SYSTEM:</strong><br>Mass decreased by <strong>${diff}g</strong>. This is <u>gas</u> that escaped! Total mass is still conserved.`;
+            } else if (productMass > totalReactant) {
+                resultDiv.innerHTML = `<strong>ERROR:</strong> Mass cannot be created! Check your scale settings.`;
+            } else {
+                resultDiv.innerHTML = `<strong>BALANCED:</strong> Reactant mass equals Product mass exactly.`;
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
