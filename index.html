@@ -3,70 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEK 8.6 Mass Lab</title>
+    <title>TEK 8.6 Mastery Dashboard</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background-color: #1a1a1a; color: #00ff00; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background-color: #262626; padding: 20px; border: 2px solid #00ff00; border-radius: 10px; box-shadow: 0 0 15px #00ff00; width: 350px; }
-        h1 { font-size: 1.2rem; text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 10px; }
-        .input-group { margin: 15px 0; }
-        label { display: block; margin-bottom: 5px; font-size: 0.8rem; }
-        input { width: 90%; background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 5px; }
-        button { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #00cc00; }
-        #result { margin-top: 20px; padding: 10px; border: 1px dashed #00ff00; font-size: 0.9rem; min-height: 50px; }
+        :root { --primary: #3498db; --secondary: #2ecc71; --dark: #121212; --card: #1e1e1e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: auto; }
+        header { text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; }
+        h1 { color: var(--primary); margin: 0; }
+        
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 700px) { .grid-layout { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; }
+        h2 { font-size: 1.1rem; color: var(--secondary); margin-top: 0; }
+
+        /* Calculator Styles */
+        input { width: 100%; padding: 8px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: var(--primary); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        #lab-result { margin-top: 15px; font-size: 0.85rem; padding: 10px; background: #252525; border-radius: 5px; border-left: 4px solid var(--primary); }
+
+        /* Bingo Styles */
+        #question-display { background: #2c3e50; padding: 10px; border-radius: 8px; font-size: 0.85rem; min-height: 40px; margin-bottom: 10px; border-left: 4px solid #f1c40f; }
+        .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .cell { aspect-ratio: 1/1; background: #333; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; text-align: center; padding: 2px; }
+        .cell.marked { background: var(--secondary); font-weight: bold; }
+        .cell.free { background: #e74c3c !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🔬 TEK 8.6 LAB TERMINAL</h1>
-    
-    <div class="input-group">
-        <label>Mass of Reactant 1 (grams):</label>
-        <input type="number" id="r1" placeholder="e.g. 10.5">
+    <header>
+        <h1>TEK 8.6 Mastery Dashboard</h1>
+        <p>Mass Conservation Lab & Study Tool</p>
+    </header>
+
+    <div class="grid-layout">
+        <section class="card">
+            <h2>🔬 Mass Lab Calculator</h2>
+            <label>Reactant A (g):</label>
+            <input type="number" id="r1" placeholder="e.g. 20">
+            <label>Reactant B (g):</label>
+            <input type="number" id="r2" placeholder="e.g. 15">
+            <label>Product Measured (g):</label>
+            <input type="number" id="pm" placeholder="Empty for Closed System">
+            <button onclick="calculateMass()">ANALYZE SYSTEM</button>
+            <div id="lab-result">Input data to check conservation...</div>
+        </section>
+
+        <section class="card">
+            <h2>🎮 Study Bingo</h2>
+            <div id="question-display">Click "New Question"</div>
+            <div class="bingo-grid" id="bingo-board"></div>
+            <button onclick="drawQuestion()" style="background: #f1c40f; color: black;">NEW QUESTION</button>
+            <button onclick="generateBoard()" style="background: #7f8c8d; font-size: 0.7rem;">RESET BOARD</button>
+        </section>
     </div>
-
-    <div class="input-group">
-        <label>Mass of Reactant 2 (grams):</label>
-        <input type="number" id="r2" placeholder="e.g. 5.0">
-    </div>
-
-    <div class="input-group">
-        <label>Measured Product Mass (grams):</label>
-        <input type="number" id="pm" placeholder="Leave empty for Closed System">
-    </div>
-
-    <button onclick="calculateMass()">ANALYZE REACTION</button>
-
-    <div id="result">Waiting for data...</div>
 </div>
 
 <script>
+    // --- Lab Logic ---
     function calculateMass() {
         let r1 = parseFloat(document.getElementById('r1').value) || 0;
         let r2 = parseFloat(document.getElementById('r2').value) || 0;
         let pm = document.getElementById('pm').value;
-        let resultDiv = document.getElementById('result');
-
-        let totalReactant = r1 + r2;
+        let totalR = r1 + r2;
+        let res = document.getElementById('lab-result');
 
         if (pm === "") {
-            // Closed System Case
-            resultDiv.innerHTML = `<strong>CLOSED SYSTEM:</strong><br>Total mass must be <strong>${totalReactant}g</strong>. No atoms were created or destroyed!`;
+            res.innerHTML = `<strong>CLOSED SYSTEM:</strong> Total mass must be <strong>${totalR}g</strong>. Mass is conserved!`;
         } else {
-            // Open System Case
-            let productMass = parseFloat(pm);
-            if (productMass < totalReactant) {
-                let diff = (totalReactant - productMass).toFixed(2);
-                resultDiv.innerHTML = `<strong>OPEN SYSTEM:</strong><br>Mass decreased by <strong>${diff}g</strong>. This is <u>gas</u> that escaped! Total mass is still conserved.`;
-            } else if (productMass > totalReactant) {
-                resultDiv.innerHTML = `<strong>ERROR:</strong> Mass cannot be created! Check your scale settings.`;
+            let pVal = parseFloat(pm);
+            if (pVal < totalR) {
+                res.innerHTML = `<strong>OPEN SYSTEM:</strong> ${(totalR - pVal).toFixed(2)}g escaped as <strong>GAS</strong>. Mass is still conserved!`;
+            } else if (pVal > totalR) {
+                res.innerHTML = `<strong>ERROR:</strong> Mass cannot be created. Check measurements.`;
             } else {
-                resultDiv.innerHTML = `<strong>BALANCED:</strong> Reactant mass equals Product mass exactly.`;
+                res.innerHTML = `<strong>BALANCED:</strong> Reactants = Products.`;
             }
         }
     }
-</script>
 
+    // --- Bingo Logic ---
+    const data = [
+        { q: "Reactants are on which side?", a: "Left" },
+        { q: "Products are on which side?", a: "Right" },
+        { q: "The 'big' number in front.", a: "Coefficient" },
+        { q: "The 'small' number for atoms.", a: "Subscript" },
+        { q: "5g + 10g in a closed jar?", a: "15g" },
+        { q: "Matter is not created/destroyed.", a: "Mass Law" },
+        { q: "A system that leaks gas.", a: "Open" },
+        { q: "A system that is sealed.", a: "Closed" },
+        { q: "H2 + O2 are the...", a: "Reactants" },
+        { q: "Total atoms in 2H2O?", a: "6 atoms" }
+    ];
+
+    function generateBoard() {
+        const board = document.getElementById('bingo-board');
+        board.innerHTML = '';
+        let answers = data.map(i => i.a);
+        while(answers.length < 24) answers.push("TEK 8.6");
+        let shuffled = answers.sort(() => 0.5 - Math.random());
+        for (let i = 0; i < 25; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'cell' + (i === 12 ? ' free marked' : '');
+            cell.innerText = i === 12 ? "FREE" : shuffled.pop();
+            cell.onclick = function() { this.classList.toggle('marked'); };
+            board.appendChild(cell);
+        }
+    }
+
+    function drawQuestion() {
+        const item = data[Math.floor(Math.random() * data.length)];
+        document.getElementById('question-display').innerText = item.q;
+    }
+
+    generateBoard();
+</script>
 </body>
 </html>
